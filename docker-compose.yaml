@@ -1,0 +1,25 @@
+version: '2.1'
+
+services:
+  gateway:
+    image: nginx:alpine
+    volumes:
+      - ${PWD}/data/gateway/html:/html
+      - ${PWD}/data/gateway/conf:/etc/nginx/conf.d
+    restart: on-failure
+    networks:
+      - de-store-net
+
+  # Backend apps
+  order-service:
+    image: afduarte/de-store
+    restart: on-failure
+    entrypoint:
+      - /main
+      - -s 
+      - order
+    networks:
+      - de-store-net
+
+networks:
+  de-store-net:

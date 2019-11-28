@@ -3,9 +3,9 @@ FROM golang as build
 
 WORKDIR /
 
-COPY *.go ./
-
 RUN go get -u "github.com/gin-gonic/gin"
+
+COPY *.go ./
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o main  *.go
 

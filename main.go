@@ -11,7 +11,6 @@ var service = flag.String("s", "order", "The type of service to run, can be one 
 
 func main() {
 	flag.Parse()
-	println(service)
 	s := &Server{
 		router:  gin.Default(),
 		service: *service,
