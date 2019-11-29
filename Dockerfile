@@ -3,7 +3,9 @@ FROM golang as build
 
 WORKDIR /
 
-RUN go get -u "github.com/gin-gonic/gin"
+RUN go get -u\
+  "github.com/gin-gonic/gin"\
+  "github.com/google/uuid"
 
 COPY *.go ./
 

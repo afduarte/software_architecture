@@ -11,9 +11,17 @@ var service = flag.String("s", "order", "The type of service to run, can be one 
 
 func main() {
 	flag.Parse()
+
 	s := &Server{
 		router:  gin.Default(),
 		service: *service,
+		config: &Config{
+			authEndpoint:      "http://auth-service/",
+			inventoryEndpoint: "http://inventory-service/",
+			loyaltyEndpoint:   "http://loyalty-service/",
+			orderEndpoint:     "http://order-service/",
+			priceEndpoint:     "http://price-service/",
+		},
 	}
 	s.routes()
 	s.router.Run() // listen and serve on 0.0.0.0:8080
@@ -36,9 +44,8 @@ func (s *Server) routes() {
 	}
 }
 
-func noOp(s *Server) func(*gin.Context) {
+func noOp(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		c.String(http.StatusOK, "OK")
 	}
 }

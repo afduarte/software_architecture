@@ -7,6 +7,14 @@ services:
       - ${PWD}/data/gateway/html:/html
       - ${PWD}/data/gateway/conf:/etc/nginx/conf.d
     restart: on-failure
+    ports:
+      - "8080:80"
+    depends_on:
+      - auth-service
+      - inventory-service
+      - loyalty-service
+      - order-service
+      - price-service
     networks:
       - de-store-net
 
@@ -14,10 +22,56 @@ services:
   order-service:
     image: afduarte/de-store
     restart: on-failure
+    environment:
+      - PORT=80
     entrypoint:
       - /main
       - -s 
       - order
+    networks:
+      - de-store-net
+  auth-service:
+    image: afduarte/de-store
+    restart: on-failure
+    environment:
+      - PORT=80
+    entrypoint:
+      - /main
+      - -s 
+      - auth
+    networks:
+      - de-store-net
+  inventory-service:
+    image: afduarte/de-store
+    restart: on-failure
+    environment:
+      - PORT=80
+    entrypoint:
+      - /main
+      - -s 
+      - inventory
+    networks:
+      - de-store-net
+  loyalty-service:
+    image: afduarte/de-store
+    restart: on-failure
+    environment:
+      - PORT=80
+    entrypoint:
+      - /main
+      - -s 
+      - loyalty
+    networks:
+      - de-store-net
+  price-service:
+    image: afduarte/de-store
+    restart: on-failure
+    environment:
+      - PORT=80
+    entrypoint:
+      - /main
+      - -s 
+      - price
     networks:
       - de-store-net
 
