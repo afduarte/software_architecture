@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -12,14 +14,8 @@ import (
 // HydrateUserMiddleware is a simple middleware that checks if a user is logged in and Hydrates
 func HydrateUserMiddleware(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		token := ParseBearerToken(c.GetHeader("Authorization"))
-		println("hydrate middleware got token " + token)
-		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			return
-		}
+		token := GetToken(c)
 		user := FetchUser(s.config.authEndpoint, token)
-		println("hydrate middleware got user " + user.Name)
 		if user == nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
@@ -34,7 +30,6 @@ func HydrateUserMiddleware(s *Server) gin.HandlerFunc {
 func RequiresPermissionMiddleware(p PermissionRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user := c.MustGet("user").(*User)
-		println("permish middleware got user " + user.Name)
 		if user.Role < p {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "forbidden"})
 			return
@@ -52,10 +47,18 @@ func ParseBearerToken(header string) string {
 	return strings.TrimSpace(split[1])
 }
 
+func GetToken(c *gin.Context) string {
+	token := ParseBearerToken(c.GetHeader("Authorization"))
+	if token == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return ""
+	}
+	return token
+}
+
 func FetchUser(authEndpoint, token string) *User {
 	formData := url.Values{"token": {token}}
-
-	req, err := http.NewRequest("POST", authEndpoint+"/user", strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("POST", authEndpoint+"/userinfo", strings.NewReader(formData.Encode()))
 	if err != nil {
 		return nil
 	}
@@ -67,4 +70,37 @@ func FetchUser(authEndpoint, token string) *User {
 	var user User
 	json.NewDecoder(response.Body).Decode(&user)
 	return &user
+}
+
+func FetchInventory(inventoryEndpoint, token string) map[string]*InventoryStock {
+	req, err := http.NewRequest("GET", inventoryEndpoint, nil)
+	if err != nil {
+		return nil
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	response, err := http.DefaultClient.Do(req)
+	if err != nil || response.StatusCode != http.StatusOK {
+		return nil
+	}
+	var stock map[string]*InventoryStock
+	json.NewDecoder(response.Body).Decode(&stock)
+	return stock
+}
+
+func SendDecrementRequest(inventoryEndpoint, token string, decrements *[]ProductOrder) error {
+	jsonDecrements, jsonErr := json.Marshal(*decrements)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	req, err := http.NewRequest("POST", inventoryEndpoint+"/decrement", bytes.NewBuffer(jsonDecrements))
+	if err != nil {
+		return errors.New("unable to send request to inventory server")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Content-Type", "application/json")
+	response, err := http.DefaultClient.Do(req)
+	if err != nil || response.StatusCode != http.StatusOK {
+		return errors.New("inventory server was unable to fulfil order")
+	}
+	return nil
 }

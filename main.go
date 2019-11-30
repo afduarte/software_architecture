@@ -16,11 +16,11 @@ func main() {
 		router:  gin.Default(),
 		service: *service,
 		config: &Config{
-			authEndpoint:      "http://auth-service/",
-			inventoryEndpoint: "http://inventory-service/",
-			loyaltyEndpoint:   "http://loyalty-service/",
-			orderEndpoint:     "http://order-service/",
-			priceEndpoint:     "http://price-service/",
+			authEndpoint:      "http://auth-service",
+			inventoryEndpoint: "http://inventory-service",
+			loyaltyEndpoint:   "http://loyalty-service",
+			orderEndpoint:     "http://order-service",
+			priceEndpoint:     "http://price-service",
 		},
 	}
 	s.routes()

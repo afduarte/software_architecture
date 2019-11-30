@@ -80,5 +80,5 @@ func userinfo(s *Server) gin.HandlerFunc {
 
 func AuthRoutes(s *Server) {
 	s.router.POST("/login", login(s))
-	s.router.GET("/userinfo", userinfo(s))
+	s.router.POST("/userinfo", userinfo(s))
 }

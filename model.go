@@ -27,7 +27,7 @@ type PermissionRole int
 const (
 	// UserRole < ManagerRole, it's also the 0 value, so any User created without a Role gets User
 	UserRole PermissionRole = iota
-	// AdminRole > UserRole
+	// ManagerRole > UserRole
 	ManagerRole
 )
 
@@ -37,7 +37,7 @@ func (s PermissionRole) String() string {
 
 var roleToString = map[PermissionRole]string{
 	UserRole:    "UserRole",
-	ManagerRole: "AdminRole",
+	ManagerRole: "ManagerRole",
 }
 
 var roleToID = map[string]PermissionRole{
@@ -75,7 +75,7 @@ type User struct {
 
 type Order struct {
 	ID       string
-	Products []Product
+	Products []ProductOrder
 	Discount []Discount
 }
 
@@ -85,12 +85,17 @@ type InventoryStock struct {
 	LowWarning int
 }
 type Product struct {
+	ID    string
+	Name  string
+	Price float64
+}
+
+type ProductOrder struct {
 	ID       string
 	Quantity int
-	Price    float32
 }
 
 type Discount struct {
-	Amount float32
+	Amount float64
 	Reason string
 }
