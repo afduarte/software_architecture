@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -72,8 +71,7 @@ func RequiresPermissionMiddleware(p PermissionRole) gin.HandlerFunc {
 // Funcs to communicate between microservices
 
 func FetchUser(authEndpoint, token string) *User {
-	formData := url.Values{"token": {token}}
-	req, err := http.NewRequest("POST", authEndpoint+"/userinfo", strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("GET", authEndpoint+"/info", nil)
 	if err != nil {
 		return nil
 	}

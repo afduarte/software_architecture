@@ -12,7 +12,16 @@ import (
 func OrderRoutes(s *Server) {
 	private := s.router.Group("/")
 	private.Use(HydrateUserMiddleware(s))
+	private.GET("/", getOrders(s))
 	private.POST("/new", buyOrder(s))
+}
+
+var OrdersMap = make(map[string]*Order)
+
+func getOrders(s *Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, OrdersMap)
+	}
 }
 
 type BuyOrderResponse struct {
@@ -28,8 +37,6 @@ type BuyOrderRequest struct {
 	UsePoints       int
 	DeliveryAddress string
 }
-
-var OrdersMap = make(map[string]*Order)
 
 func buyOrder(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -81,20 +88,21 @@ func buyOrder(s *Server) gin.HandlerFunc {
 			return
 		}
 
-		loyaltyResp, loyaltyErr := SendUpdatePointsRequest(s.config.loyaltyEndpoint, user.Token, orderReq.CustomerID, orderReq.Cart, orderReq.UsePoints)
-		if loyaltyErr != nil {
-			errors := append(errors, loyaltyErr.Error())
-			c.JSON(http.StatusServiceUnavailable, BuyOrderResponse{nil, "unable to fulfill order", warnings, errors})
-			return
-		}
+		if orderReq.CustomerID != "" {
+			loyaltyResp, loyaltyErr := SendUpdatePointsRequest(s.config.loyaltyEndpoint, user.Token, orderReq.CustomerID, orderReq.Cart, orderReq.UsePoints)
+			if loyaltyErr != nil {
+				errors := append(errors, loyaltyErr.Error())
+				c.JSON(http.StatusServiceUnavailable, BuyOrderResponse{nil, "unable to fulfill order", warnings, errors})
+				return
+			}
 
-		if loyaltyResp.Discount > 0 {
-			cartResp.Discount += loyaltyResp.Discount
-			cartResp.DiscountReasons = append(cartResp.DiscountReasons, fmt.Sprintf("%.2f off for using %d loyalty points", loyaltyResp.Discount, orderReq.UsePoints))
+			if loyaltyResp.Discount > 0 {
+				cartResp.Discount += loyaltyResp.Discount
+				cartResp.DiscountReasons = append(cartResp.DiscountReasons, fmt.Sprintf("%.2f off for using %d loyalty points", loyaltyResp.Discount, orderReq.UsePoints))
+			}
 		}
-
 		id := uuid.Must(uuid.NewRandom())
-		order := &Order{id.String(), user.Name, orderReq.CustomerID, orderReq.DeliveryAddress, "processed", time.Now(), orderReq.Cart, cartResp.Total, cartResp.Discount, cartResp.DiscountReasons}
+		order := &Order{id.String(), user.Username, orderReq.CustomerID, orderReq.DeliveryAddress, "processed", time.Now(), orderReq.Cart, cartResp.Total, cartResp.Discount, cartResp.DiscountReasons}
 		OrdersMap[id.String()] = order
 
 		c.JSON(http.StatusOK, BuyOrderResponse{order, "order processed successfully", warnings, errors})

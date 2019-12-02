@@ -83,7 +83,7 @@ func calculateCart(s *Server) gin.HandlerFunc {
 				return
 			}
 			// add price to total if it exists
-			res.Total += prod.Price
+			res.Total += prod.Price * float64(p.Quantity)
 
 		}
 		// apply any discounts

@@ -19,7 +19,7 @@ type LoginResponse struct {
 
 var UserMap = map[string]*User{
 	"antero":  &User{"antero", "supersafepassword", "Antero Duarte", "", ManagerRole},
-	"peasant": &User{"peasant", "supersafepassword", "Peasant User", "", UserRole},
+	"alex": &User{"alex", "supersafepassword", "Alex Smith", "", UserRole},
 }
 
 var LoggedInUsers map[string]*User = make(map[string]*User)
@@ -68,6 +68,22 @@ func userinfo(s *Server) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "token missing"})
 			return
 		}
+		user, ok := LoggedInUsers[token]
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"Message": "bad credentials"})
+			return
+		}
+		c.JSON(http.StatusOK, user)
+	}
+}
+
+func users(s *Server) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token := ParseBearerToken(c.GetHeader("Authorization"))
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "token missing"})
+			return
+		}
 
 		user, ok := LoggedInUsers[token]
 		if !ok {
@@ -80,5 +96,9 @@ func userinfo(s *Server) gin.HandlerFunc {
 
 func AuthRoutes(s *Server) {
 	s.router.POST("/login", login(s))
-	s.router.POST("/userinfo", userinfo(s))
+	s.router.GET("/info", userinfo(s))
+
+	private := s.router.Group("/user")	
+	private.Use(HydrateUserMiddleware(s))
+	private.GET("/list", users(s))
 }

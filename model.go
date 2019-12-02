@@ -72,7 +72,7 @@ type User struct {
 	Username string
 	password string
 	Name     string
-	Token    string
+	Token    string `json:",omitempty"`
 	Role     PermissionRole
 }
 
