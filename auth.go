@@ -43,17 +43,17 @@ func login(s *Server) gin.HandlerFunc {
 		var password string
 
 		if user = c.PostForm("user"); user == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "message": "user field missing"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "user field missing"})
 			return
 		}
 
 		if password = c.PostForm("pass"); password == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "message": "pass field missing"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "pass field missing"})
 			return
 		}
 		u, message := UserLogin(user, password)
 		if u == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"code": http.StatusUnauthorized, "message": "bad credentials"})
+			c.JSON(http.StatusUnauthorized, gin.H{"Message": "bad credentials"})
 			return
 		}
 		LoggedInUsers[u.Token] = u
@@ -65,13 +65,13 @@ func userinfo(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := ParseBearerToken(c.GetHeader("Authorization"))
 		if token == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "message": "token missing"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "token missing"})
 			return
 		}
 
 		user, ok := LoggedInUsers[token]
 		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"code": http.StatusUnauthorized, "message": "bad credentials"})
+			c.JSON(http.StatusUnauthorized, gin.H{"Message": "bad credentials"})
 			return
 		}
 		c.JSON(http.StatusOK, user)

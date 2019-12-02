@@ -16,6 +16,7 @@ func InventoryRoutes(s *Server) {
 var InventoryMap = map[string]*InventoryStock{
 	"0001": &InventoryStock{"0001", 5, 2},
 	"0002": &InventoryStock{"0002", 50, 20},
+	"0003": &InventoryStock{"0003", 100, 20},
 }
 
 func getInventory(s *Server) gin.HandlerFunc {
@@ -27,7 +28,7 @@ func getInventory(s *Server) gin.HandlerFunc {
 // decrementStock is unsafe because stock should be checked before decrementing
 func decrementStock(s *Server) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var decrements []ProductOrder
+		var decrements map[string]*ProductOrder
 		c.BindJSON(&decrements)
 		for _, d := range decrements {
 			inv, ok := InventoryMap[d.ID]
