@@ -70,6 +70,10 @@ func buyOrder(s *Server) gin.HandlerFunc {
 			return
 		}
 
+		if orderReq.DeliveryAddress != "" {
+			orderReq.Cart["9999"] = &ProductOrder{"9999", 1}
+		}
+
 		cartResp, cartErr := SendCalculateCartRequest(s.config.priceEndpoint, user.Token, orderReq.Cart)
 		if cartErr != nil {
 			errors := append(errors, cartErr.Error())

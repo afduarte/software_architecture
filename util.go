@@ -136,11 +136,11 @@ func SendDecrementRequest(inventoryEndpoint, token string, decrements map[string
 }
 
 func SendCalculateCartRequest(priceEndpoint, token string, cart map[string]*ProductOrder) (*CartValueResponse, error) {
-	jsonDecrements, jsonErr := json.Marshal(cart)
+	jsonCart, jsonErr := json.Marshal(cart)
 	if jsonErr != nil {
 		return nil, jsonErr
 	}
-	req, err := http.NewRequest("POST", priceEndpoint+"/calculate", bytes.NewBuffer(jsonDecrements))
+	req, err := http.NewRequest("POST", priceEndpoint+"/calculate", bytes.NewBuffer(jsonCart))
 	if err != nil {
 		return nil, errors.New("unable to send request to price server")
 	}

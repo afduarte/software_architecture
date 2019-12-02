@@ -23,6 +23,7 @@ var ProductMap = map[string]*Product{
 	"0001": &Product{"0001", "Gadget", 45.50},
 	"0002": &Product{"0002", "Widget 1.0", 5.45},
 	"0003": &Product{"0003", "Widget 2.0", 7.45},
+	"9999": &Product{"9999", "Delivery", 5.0},
 }
 
 var DiscountList = []Discount{
